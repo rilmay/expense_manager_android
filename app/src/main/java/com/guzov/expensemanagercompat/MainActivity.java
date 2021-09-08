@@ -1,10 +1,17 @@
 package com.guzov.expensemanagercompat;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.provider.Telephony;
 import android.service.autofill.Dataset;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -21,6 +28,8 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import com.guzov.expensemanagercompat.entity.Sms;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,5 +156,61 @@ public class MainActivity extends AppCompatActivity {
         xAxis.add("MAY");
         xAxis.add("JUN");
         return xAxis;
+    }
+
+    public void onMessagesButtonClick(View v) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            final String myPackageName = getPackageName();
+            String telephonyDefault = Telephony.Sms.getDefaultSmsPackage(this);
+
+            final int REQUEST_CODE_ASK_PERMISSIONS = 123;
+
+            if(ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") == PackageManager.PERMISSION_GRANTED) {
+                List<Sms> lst = SmsManager.getAllSms(this);
+                Log.d("Example", lst.get(0).toString());
+
+                if(!lst.isEmpty()) {
+                    textView.setText("message " + lst.get(0).getMsg());
+                }
+
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
+
+            }
+
+
+//            if (telephonyDefault == null || !telephonyDefault.equals(myPackageName)) {
+//
+//                Intent intent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+//                intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, myPackageName);
+//                startActivityForResult(intent, 1);
+//            }else {
+            //}
+        }else {
+            List<Sms> lst = SmsManager.getAllSms(this);
+
+            if(!lst.isEmpty()) {
+                textView.setText("message " + lst.get(0).getMsg());
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    final String myPackageName = getPackageName();
+                    if (Telephony.Sms.getDefaultSmsPackage(this).equals(myPackageName)) {
+                        List<Sms> lst = SmsManager.getAllSms(this);
+                        if(!lst.isEmpty()) {
+                            textView.setText("message " + lst.get(0).getMsg());
+                        }
+                    }
+                }
+            }
+        }
     }
 }
