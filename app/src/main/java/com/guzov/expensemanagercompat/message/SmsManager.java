@@ -1,4 +1,4 @@
-package com.guzov.expensemanagercompat;
+package com.guzov.expensemanagercompat.message;
 
 import android.content.ContentResolver;
 import android.database.Cursor;

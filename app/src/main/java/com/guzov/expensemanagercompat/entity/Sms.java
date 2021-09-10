@@ -1,5 +1,7 @@
 package com.guzov.expensemanagercompat.entity;
 
+import java.util.Objects;
+
 public class Sms{
     private String _id;
     private String _address;
@@ -47,4 +49,33 @@ public class Sms{
         _folderName = folderName;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Sms sms = (Sms) o;
+        return Objects.equals(_id, sms._id) &&
+                Objects.equals(_address, sms._address) &&
+                Objects.equals(_msg, sms._msg) &&
+                Objects.equals(_readState, sms._readState) &&
+                Objects.equals(_time, sms._time) &&
+                Objects.equals(_folderName, sms._folderName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(_id, _address, _msg, _readState, _time, _folderName);
+    }
+
+    @Override
+    public String toString() {
+        return "Sms{" +
+                "_id='" + _id + '\'' +
+                ", _address='" + _address + '\'' +
+                ", _msg='" + _msg + '\'' +
+                ", _readState='" + _readState + '\'' +
+                ", _time='" + _time + '\'' +
+                ", _folderName='" + _folderName + '\'' +
+                '}';
+    }
 }
