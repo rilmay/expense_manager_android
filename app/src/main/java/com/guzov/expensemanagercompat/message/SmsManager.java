@@ -6,6 +6,7 @@ import android.net.Uri;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.guzov.expensemanagercompat.constants.ProjectConstants;
 import com.guzov.expensemanagercompat.entity.Sms;
 
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.List;
 
 public class SmsManager {
     public static List<Sms> getAllSms(AppCompatActivity activity) {
-        List<Sms> lstSms = new ArrayList<Sms>();
+        List<Sms> lstSms = new ArrayList<>();
         Sms objSms;
         Uri message = Uri.parse("content://sms/");
         ContentResolver cr = activity.getContentResolver();
@@ -33,18 +34,15 @@ public class SmsManager {
                 objSms.setReadState(c.getString(c.getColumnIndex("read")));
                 objSms.setTime(c.getString(c.getColumnIndexOrThrow("date")));
                 if (c.getString(c.getColumnIndexOrThrow("type")).contains("1")) {
-                    objSms.setFolderName("inbox");
+                    objSms.setFolderName(ProjectConstants.SMS_FOLDER_INBOX);
                 } else {
-                    objSms.setFolderName("sent");
+                    objSms.setFolderName(ProjectConstants.SMS_FOLDER_SENT);
                 }
 
                 lstSms.add(objSms);
                 c.moveToNext();
             }
         }
-        // else {
-        // throw new RuntimeException("You have no SMS");
-        // }
         c.close();
 
         return lstSms;
