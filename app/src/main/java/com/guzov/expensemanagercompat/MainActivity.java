@@ -27,11 +27,17 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import com.guzov.expensemanagercompat.chart.DatasetFactory;
+import com.guzov.expensemanagercompat.entity.Currency;
+import com.guzov.expensemanagercompat.entity.ExpenseMessage;
 import com.guzov.expensemanagercompat.entity.Sms;
+import com.guzov.expensemanagercompat.entity.SmsConfig;
 import com.guzov.expensemanagercompat.message.SmsManager;
+import com.guzov.expensemanagercompat.message.SmsParser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     protected final String[] months = new String[] {
@@ -39,13 +45,14 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private TextView textView;
+    private BarChart chart;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.charts);
         textView = (TextView) findViewById(R.id.selected_value);
-        BarChart chart = (BarChart) findViewById(R.id.chart);
+        chart = (BarChart) findViewById(R.id.chart);
 
 //        BarData data = new BarData(getDataSet());
 //
@@ -75,7 +82,12 @@ public class MainActivity extends AppCompatActivity {
         chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-                textView.setText("Value = " + e.getY());
+                List<ExpenseMessage> entries = (List<ExpenseMessage>) e.getData();
+                if (entries != null) {
+                    int index = h.getStackIndex();
+                    //String messages = entries.stream().map(entry -> entry.toString()).collect(Collectors.joining(", "));
+                    textView.setText("Value = " + entries.get(index).toString());
+                }
             }
 
             @Override
@@ -167,11 +179,20 @@ public class MainActivity extends AppCompatActivity {
 
             if(ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") == PackageManager.PERMISSION_GRANTED) {
                 List<Sms> lst = SmsManager.getAllSms(this);
-                Log.d("Example", lst.get(0).toString());
-
-                if(!lst.isEmpty()) {
-                    textView.setText("message " + lst.get(0).getMsg());
-                }
+                SmsConfig config = new SmsConfig();
+                config.setAddressToCheck("Priorbank");
+                List<ExpenseMessage> messages = SmsParser.getExpenseMessages(config, lst)
+                        .stream()
+                        .filter(expenseMessage -> Currency.BYN.equals(expenseMessage.getCurrency()))
+                        .collect(Collectors.toList());
+                messages = messages.subList(0, 90);
+                textView.setText("message " + messages.get(0).getValuesSpent());
+                List<BarEntry> entries = DatasetFactory.getEntriesFromExpenseMessage(messages);
+                BarDataSet barDataSet = new BarDataSet(entries, "expense");
+                chart.clear();
+                BarData barData = new BarData(barDataSet);
+                chart.setData(barData);
+                chart.invalidate();
 
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
@@ -188,10 +209,17 @@ public class MainActivity extends AppCompatActivity {
             //}
         }else {
             List<Sms> lst = SmsManager.getAllSms(this);
-
-            if(!lst.isEmpty()) {
-                textView.setText("message " + lst.get(0).getMsg());
-            }
+            SmsConfig config = new SmsConfig();
+            config.setAddressToCheck("Priorbank");
+            List<ExpenseMessage> messages = SmsParser.getExpenseMessages(config, lst);
+            messages = messages.subList(messages.size() - 20, messages.size()-1);
+            textView.setText("message " + messages.get(0).getValuesSpent());
+            List<BarEntry> entries = DatasetFactory.getEntriesFromExpenseMessage(messages);
+            BarDataSet barDataSet = new BarDataSet(entries, "expense");
+            chart.clear();
+            BarData barData = new BarData(barDataSet);
+            chart.setData(barData);
+            chart.invalidate();
         }
     }
 

@@ -1,18 +1,19 @@
 package com.guzov.expensemanagercompat.entity;
 
+import java.nio.channels.FileLock;
 import java.util.Date;
 import java.util.Objects;
 
 public class ExpenseMessage {
     private String originalMessage;
-    private Double valuesSpent;
+    private Float valuesSpent;
     private Currency currency;
     private String sourceOfSpending;
     private Date date;
     private String cardNumber;
     private String bankName;
 
-    public ExpenseMessage(String originalMessage, Double valuesSpent, Currency currency, String sourceOfSpending, Date date, String bankName) {
+    public ExpenseMessage(String originalMessage, Float valuesSpent, Currency currency, String sourceOfSpending, Date date, String bankName) {
         this.originalMessage = originalMessage;
         this.valuesSpent = valuesSpent;
         this.currency = currency;
@@ -32,11 +33,11 @@ public class ExpenseMessage {
         this.originalMessage = originalMessage;
     }
 
-    public Double getValuesSpent() {
+    public Float getValuesSpent() {
         return valuesSpent;
     }
 
-    public void setValuesSpent(Double valuesSpent) {
+    public void setValuesSpent(Float valuesSpent) {
         this.valuesSpent = valuesSpent;
     }
 

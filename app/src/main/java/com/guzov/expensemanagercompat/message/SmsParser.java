@@ -37,18 +37,24 @@ public class SmsParser {
         ExpenseMessage expenseMessage = new ExpenseMessage();
         String originalMsg = message.getMsg();
         expenseMessage.setOriginalMessage(originalMsg);
-        expenseMessage.setValuesSpent(findFirstByPattern(originalMsg,VALUE_REGEX).map(Double::new).orElse(null));
+        expenseMessage.setValuesSpent(findFirstByPattern(originalMsg,VALUE_REGEX).map(Float::new).orElse(null));
         expenseMessage.setCurrency(getCurrency(originalMsg, expenseMessage.getValuesSpent()));
         expenseMessage.setCardNumber(findFirstByPattern(originalMsg, CARD_REGEX).orElse(null));
-        expenseMessage.setSourceOfSpending(findFirstByPattern(originalMsg, SOURCE_OF_SPENDING).orElse(null));
+        expenseMessage.setSourceOfSpending(getSourceOfSpending(originalMsg, expenseMessage.getValuesSpent()).orElse(null));
         expenseMessage.setDate(new Date(Long.parseLong(message.getTime())));
         return expenseMessage;
     }
 
-    private static Currency getCurrency(String message, Double valueSpent) {
-        Integer intValue = valueSpent == null? 0: valueSpent.intValue();
+    private static Currency getCurrency(String message, Float valueSpent) {
+        int intValue = valueSpent == null? 0: valueSpent.intValue();
         String pattern = "(?<=Oplata " + intValue + "\\.[0-9]{2} )[A-Z]{1,3}";
         return Currency.getTag(findFirstByPattern(message, pattern).orElse(null)).orElse(Currency.BYN);
+    }
+
+    private static Optional<String> getSourceOfSpending(String message, Float valueSpent) {
+        int intValue = valueSpent == null? 0: valueSpent.intValue();
+        String pattern = "(?<=Oplata " + intValue + "\\.[0-9]{2} [A-Z]{3}\\. ).+(?=\\. Dostupno)";
+        return findFirstByPattern(message, pattern);
     }
 
     private static Optional<String> findFirstByPattern(String text, String pattern) {

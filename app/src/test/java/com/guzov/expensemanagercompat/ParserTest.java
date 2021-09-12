@@ -48,9 +48,41 @@ public class ParserTest {
         List<ExpenseMessage> messages = SmsParser.getExpenseMessages(config, Collections.singletonList(sms1));
         assertEquals(1, messages.size());
         ExpenseMessage expenseMessage = messages.get(0);
-        assertEquals(new Double(6.98), expenseMessage.getValuesSpent());
+        assertEquals(new Float(6.98), expenseMessage.getValuesSpent());
         assertEquals("BLR SHOP SOSEDI", expenseMessage.getSourceOfSpending());
         assertEquals(Currency.BYN, expenseMessage.getCurrency());
+        assertEquals("1***1111", expenseMessage.getCardNumber());
+
+    }
+
+    @Test
+    public void testParsingSpecificValues2() {
+        String address = "Alfaaa";
+        Sms sms1 = getMockSms(address, "Alfaaa. Karta 1***1111 01-01-2021 14:28:11. Oplata 7.24 BYN. BLR D-R OSTROV CHIST.I VKUSA. Dostupno: 13.65 BYN. Spravka: 111111111");
+        SmsConfig config = new SmsConfig();
+        config.setAddressToCheck(address);
+        List<ExpenseMessage> messages = SmsParser.getExpenseMessages(config, Collections.singletonList(sms1));
+        assertEquals(1, messages.size());
+        ExpenseMessage expenseMessage = messages.get(0);
+        assertEquals(new Float(7.24), expenseMessage.getValuesSpent());
+        assertEquals("BLR D-R OSTROV CHIST.I VKUSA", expenseMessage.getSourceOfSpending());
+        assertEquals(Currency.BYN, expenseMessage.getCurrency());
+        assertEquals("1***1111", expenseMessage.getCardNumber());
+
+    }
+
+    @Test
+    public void testParsingSpecificValues3() {
+        String address = "Alfaaa";
+        Sms sms1 = getMockSms(address, "Alfaaa. Karta 1***1111 01-01-2021 17:51:46. Oplata 902.00 RUB. RUS Wildberries. Dostupno: 7.70 BYN. Spravka: 111111111");
+        SmsConfig config = new SmsConfig();
+        config.setAddressToCheck(address);
+        List<ExpenseMessage> messages = SmsParser.getExpenseMessages(config, Collections.singletonList(sms1));
+        assertEquals(1, messages.size());
+        ExpenseMessage expenseMessage = messages.get(0);
+        assertEquals(new Float(902), expenseMessage.getValuesSpent());
+        assertEquals("RUS Wildberries", expenseMessage.getSourceOfSpending());
+        assertEquals(Currency.RUB, expenseMessage.getCurrency());
         assertEquals("1***1111", expenseMessage.getCardNumber());
 
     }
