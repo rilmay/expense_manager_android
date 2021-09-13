@@ -23,18 +23,20 @@ import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.guzov.expensemanagercompat.chart.DatasetFactory;
+import com.guzov.expensemanagercompat.chart.BarExpenseFactory;
+import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.entity.Currency;
 import com.guzov.expensemanagercompat.entity.ExpenseMessage;
 import com.guzov.expensemanagercompat.entity.Sms;
+import com.guzov.expensemanagercompat.entity.TimeFrame;
 import com.guzov.expensemanagercompat.message.ExpenseSmsParser;
+import com.guzov.expensemanagercompat.message.MessageUtils;
 import com.guzov.expensemanagercompat.message.SmsManager;
 import com.guzov.expensemanagercompat.message.factory.DefaultExpenseConfigFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
     protected final String[] months = new String[]{
@@ -43,12 +45,14 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textView;
     private BarChart chart;
-    private List<ExpenseMessage> messages;
+    private TextView statistics;
+    private List<BankMessage> messages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.charts);
+        statistics = (TextView) findViewById(R.id.statistic);
         textView = (TextView) findViewById(R.id.selected_value);
         chart = (BarChart) findViewById(R.id.chart);
 
@@ -158,13 +162,18 @@ public class MainActivity extends AppCompatActivity {
         List<Sms> lst = SmsManager.getAllSms(this);
         Map<String, String> expenseConfig = DefaultExpenseConfigFactory.get();
         ExpenseSmsParser expenseSmsParser = new ExpenseSmsParser(expenseConfig);
-        messages = expenseSmsParser.parse(lst);
-        List<ExpenseMessage> localMessages = messages
-                .stream()
-                .filter(expenseMessage -> Currency.BYN.equals(expenseMessage.getCurrency()))
-                .collect(Collectors.toList()).subList(0,10);
+        messages = MessageUtils.castMessages(expenseSmsParser.parse(lst));
+        List<BankMessage> localMessages = MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_CURRENT_MONTH);
+        List<BankMessage> localMessagesPastMonth = MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_PREVIOUS_MONTH_TO_CURRENT_MONTH);
+        Double sumCurrentMonth = MessageUtils.getSummaryOfMessages( MessageUtils.filterMessagesByCurrency(localMessages, Currency.BYN));
+        Double sumPrevMonth = MessageUtils.getSummaryOfMessages( MessageUtils.filterMessagesByCurrency(localMessagesPastMonth, Currency.BYN));
+        statistics.setText("Sum current month " + sumCurrentMonth + " sum prev " + sumPrevMonth);
+
+
+        localMessages = MessageUtils.filterMessagesByCurrency(localMessages, Currency.BYN);
         textView.setText("message " + messages.get(0).getValue());
-        List<BarEntry> entries = DatasetFactory.getEntriesFromExpenseMessage(localMessages);
+        BarExpenseFactory expenseFactory = new BarExpenseFactory();
+        List<BarEntry> entries = expenseFactory.getEntriesFromMessages(localMessages);
         BarDataSet barDataSet = new BarDataSet(entries, "expense");
         chart.clear();
         BarData barData = new BarData(barDataSet);

@@ -6,7 +6,6 @@ import com.guzov.expensemanagercompat.entity.Currency;
 import com.guzov.expensemanagercompat.entity.ExpenseMessage;
 import com.guzov.expensemanagercompat.entity.Sms;
 
-import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Map;
 

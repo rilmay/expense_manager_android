@@ -3,7 +3,7 @@ package com.guzov.expensemanagercompat.entity;
 import java.util.Date;
 import java.util.Objects;
 
-public class BankMessage {
+public abstract class BankMessage {
     protected String originalMessage;
     protected float value;
     protected Date date;
