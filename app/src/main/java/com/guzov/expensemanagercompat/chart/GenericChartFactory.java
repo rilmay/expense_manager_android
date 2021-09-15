@@ -4,7 +4,6 @@ import android.text.format.DateFormat;
 
 import com.github.mikephil.charting.data.Entry;
 import com.guzov.expensemanagercompat.entity.BankMessage;
-import com.guzov.expensemanagercompat.entity.TimeFrame;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -92,5 +91,7 @@ public abstract class GenericChartFactory<E extends Entry> {
         }
         return primData;
     }
+
+
 
 }

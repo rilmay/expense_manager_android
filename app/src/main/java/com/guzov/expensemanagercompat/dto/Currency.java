@@ -1,4 +1,4 @@
-package com.guzov.expensemanagercompat.entity;
+package com.guzov.expensemanagercompat.dto;
 
 import java.util.Arrays;
 import java.util.Optional;

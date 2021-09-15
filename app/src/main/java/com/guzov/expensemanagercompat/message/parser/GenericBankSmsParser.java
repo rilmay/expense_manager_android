@@ -1,4 +1,6 @@
-package com.guzov.expensemanagercompat.message;
+package com.guzov.expensemanagercompat.message.parser;
+
+import androidx.viewpager.widget.PagerAdapter;
 
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.entity.Sms;
@@ -11,18 +13,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public abstract class GenericBankSmsParser<T extends BankMessage> {
-    protected Map<String, String> config;
+public abstract class GenericBankSmsParser implements BankSmsParser {
 
-    public GenericBankSmsParser(Map<String, String> config) {
-        this.config = config;
-        if (isConfigEligible()) {
-            extractValues();
-        }
-    }
-
-    public List<T> parse(List<Sms> smsList) {
-        List<T> result = new ArrayList<>();
+    public List<BankMessage> parse(List<Sms> smsList) {
+        List<BankMessage> result = new ArrayList<>();
         if (smsList != null && !smsList.isEmpty() && isConfigEligible()) {
             result = smsList.stream()
                     .filter(this::filterSms)
@@ -34,11 +28,9 @@ public abstract class GenericBankSmsParser<T extends BankMessage> {
 
     protected abstract Boolean filterSms(Sms sms);
 
-    protected abstract T parseMessage(Sms sms);
+    protected abstract BankMessage parseMessage(Sms sms);
 
     protected abstract Boolean isConfigEligible();
-
-    protected abstract void extractValues();
 
     protected Optional<String> findFirstByPattern(String text, String pattern) {
         return findByPattern(text, pattern).stream().findFirst();

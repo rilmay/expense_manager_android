@@ -1,5 +1,7 @@
 package com.guzov.expensemanagercompat.entity;
 
+import com.guzov.expensemanagercompat.dto.MessageType;
+
 import java.util.Objects;
 
 public class ExpenseMessage extends BankMessage {
@@ -11,6 +13,11 @@ public class ExpenseMessage extends BankMessage {
 
     public void setSourceOfSpending(String sourceOfSpending) {
         this.sourceOfSpending = sourceOfSpending;
+    }
+
+    @Override
+    public MessageType getMessageType() {
+        return MessageType.EXPENSE;
     }
 
     @Override

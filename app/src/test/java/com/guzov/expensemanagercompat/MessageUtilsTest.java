@@ -2,7 +2,7 @@ package com.guzov.expensemanagercompat;
 
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.entity.ExpenseMessage;
-import com.guzov.expensemanagercompat.entity.TimeFrame;
+import com.guzov.expensemanagercompat.dto.TimeFrame;
 import com.guzov.expensemanagercompat.message.MessageUtils;
 
 import org.junit.Test;
@@ -42,6 +42,5 @@ public class MessageUtilsTest {
                 MessageUtils.getMessagesWithinTimeframe(Arrays.asList(expenseMessage1, expenseMessage2), TimeFrame.FROM_CURRENT_MONTH);
         assertEquals(1, bankMessages.size());
         assertEquals(msg2, bankMessages.get(0).getOriginalMessage());
-
     }
 }

@@ -1,5 +1,8 @@
 package com.guzov.expensemanagercompat.entity;
 
+import com.guzov.expensemanagercompat.dto.Currency;
+import com.guzov.expensemanagercompat.dto.MessageType;
+
 import java.util.Date;
 import java.util.Objects;
 
@@ -10,6 +13,8 @@ public abstract class BankMessage {
     protected Currency currency;
     protected String bankName;
     protected String cardNumber;
+
+    public abstract MessageType getMessageType();
 
     public String getOriginalMessage() {
         return originalMessage;

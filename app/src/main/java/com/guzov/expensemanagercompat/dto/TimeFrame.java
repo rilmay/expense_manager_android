@@ -1,6 +1,5 @@
-package com.guzov.expensemanagercompat.entity;
+package com.guzov.expensemanagercompat.dto;
 
-import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 
