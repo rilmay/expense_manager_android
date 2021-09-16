@@ -12,8 +12,8 @@ import com.guzov.expensemanagercompat.entity.Sms;
 import java.util.Date;
 import java.util.Map;
 
-public class ExpenseSmsParser extends GenericBankSmsParser implements BankSmsParser {
-    private Map<String, String> config;
+public class ExpenseSmsParser extends GenericBankSmsParser {
+    private final Map<String, String> config;
     private String expenseKeyword;
     private String valueRegex;
     private String cardRegex;

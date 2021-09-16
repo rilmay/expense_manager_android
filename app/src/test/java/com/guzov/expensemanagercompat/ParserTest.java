@@ -5,19 +5,19 @@ import com.guzov.expensemanagercompat.dto.MessageType;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.entity.ExpenseMessage;
 import com.guzov.expensemanagercompat.entity.Sms;
+import com.guzov.expensemanagercompat.message.factory.DefaultExpenseConfigFactory;
 import com.guzov.expensemanagercompat.message.parser.BankSmsParser;
 import com.guzov.expensemanagercompat.message.parser.BankSmsParserFactory;
-import com.guzov.expensemanagercompat.message.factory.DefaultExpenseConfigFactory;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 public class ParserTest {
     private Sms getMockSms(String address, String msg) {
@@ -38,7 +38,7 @@ public class ParserTest {
         Sms sms3 = getMockSms(address, "Alfaaa. Karta 1***1111 01-01-2021 21:46:28. Oplata 2.10 BYN. BLR KAFETERIY TERRI BAPB. Dostupno: 134.58 BYN. Spravka: 111111111");
         List<Sms> smsList = Arrays.asList(sms1, sms2, sms3);
         Map<String, String> config = DefaultExpenseConfigFactory.get();
-        BankSmsParser parser = BankSmsParserFactory.getInstance().getParser(MessageType.EXPENSE, config);;
+        BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, config);
         List<BankMessage> messages = parser.parse(smsList);
         assertEquals(2, messages.size());
     }
@@ -48,7 +48,7 @@ public class ParserTest {
         String address = "Alfaaa";
         Sms sms1 = getMockSms(address, "Alfaaa. Karta 1***1111 01-01-2021 22:49:12. Oplata 6.98 BYN. BLR SHOP SOSEDI. Dostupno: 127.60 BYN. Spravka: 111111111");
         Map<String, String> config = DefaultExpenseConfigFactory.get();
-        BankSmsParser parser = BankSmsParserFactory.getInstance().getParser(MessageType.EXPENSE, config);
+        BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, config);
         List<BankMessage> messages = parser.parse(Collections.singletonList(sms1));
         assertEquals(1, messages.size());
         ExpenseMessage expenseMessage = (ExpenseMessage) messages.get(0);
@@ -64,7 +64,7 @@ public class ParserTest {
         String address = "Alfaaa";
         Sms sms1 = getMockSms(address, "Alfaaa. Karta 1***1111 01-01-2021 14:28:11. Oplata 7.24 BYN. BLR D-R OSTROV CHIST.I VKUSA. Dostupno: 13.65 BYN. Spravka: 111111111");
         Map<String, String> config = DefaultExpenseConfigFactory.get();
-        BankSmsParser parser = BankSmsParserFactory.getInstance().getParser(MessageType.EXPENSE, config);
+        BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, config);
         List<BankMessage> messages = parser.parse(Collections.singletonList(sms1));
         assertEquals(1, messages.size());
         ExpenseMessage expenseMessage = (ExpenseMessage) messages.get(0);
@@ -80,7 +80,7 @@ public class ParserTest {
         String address = "Alfaaa";
         Sms sms1 = getMockSms(address, "Alfaaa. Karta 1***1111 01-01-2021 17:51:46. Oplata 902.00 RUB. RUS Wildberries. Dostupno: 7.70 BYN. Spravka: 111111111");
         Map<String, String> config = DefaultExpenseConfigFactory.get();
-        BankSmsParser parser = BankSmsParserFactory.getInstance().getParser(MessageType.EXPENSE, config);
+        BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, config);
         List<BankMessage> messages = parser.parse(Collections.singletonList(sms1));
         assertEquals(1, messages.size());
         ExpenseMessage expenseMessage = (ExpenseMessage) messages.get(0);

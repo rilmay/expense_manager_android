@@ -3,6 +3,7 @@ package com.guzov.expensemanagercompat.chart;
 import android.text.format.DateFormat;
 
 import com.github.mikephil.charting.data.Entry;
+import com.guzov.expensemanagercompat.dto.EntryMessageData;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 
 import java.text.ParseException;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public abstract class GenericChartFactory<E extends Entry> {
+public abstract class GenericEntryProducer<E extends Entry> implements ChartEntryProducer<E>{
     protected final String datePattern = "yyyy-MM-dd";
     protected final SimpleDateFormat format = new SimpleDateFormat(datePattern);
     protected abstract E getInstanceOfEntry(int index, float[] data, Object relatedData);
@@ -55,10 +56,11 @@ public abstract class GenericChartFactory<E extends Entry> {
             String currentDateKey = getFormattedDate(currentDay);
             List<BankMessage> messagesByDate = messagesByDates.get(currentDateKey);
             E entry;
+            EntryMessageData messageData = getMessageData(messagesByDate, currentDay);
             if (messagesByDate == null || messagesByDate.isEmpty()) {
-                entry = getInstanceOfEntry(index, 0f, messagesByDate);
+                entry = getInstanceOfEntry(index, 0f, messageData);
             } else {
-                entry = getInstanceOfEntry(index, getValuesFromMessages(messagesByDate), messagesByDate);
+                entry = getInstanceOfEntry(index, getValuesFromMessages(messagesByDate), messageData);
             }
             entries.add(entry);
             currentDay = incrementDay(currentDay);
@@ -92,6 +94,7 @@ public abstract class GenericChartFactory<E extends Entry> {
         return primData;
     }
 
-
-
+    protected EntryMessageData getMessageData(List<BankMessage> messages, Date date) {
+        return new EntryMessageData(messages, date);
+    }
 }

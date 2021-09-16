@@ -1,18 +1,18 @@
 package com.guzov.expensemanagercompat;
 
+import com.guzov.expensemanagercompat.dto.TimeFrame;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.entity.ExpenseMessage;
-import com.guzov.expensemanagercompat.dto.TimeFrame;
 import com.guzov.expensemanagercompat.message.MessageUtils;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class MessageUtilsTest {
     private ExpenseMessage getMessage(String origMsg, Date date) {
@@ -27,7 +27,7 @@ public class MessageUtilsTest {
     public void testMessagesWithinMonth() {
         String msg1 = "msg1";
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) -1);
+        cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - 1);
         cal.clear(Calendar.MINUTE);
         cal.clear(Calendar.SECOND);
         cal.clear(Calendar.MILLISECOND);
