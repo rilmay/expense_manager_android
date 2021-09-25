@@ -4,6 +4,7 @@ import android.text.format.DateFormat;
 
 import com.github.mikephil.charting.data.Entry;
 import com.guzov.expensemanagercompat.dto.EntryMessageData;
+import com.guzov.expensemanagercompat.dto.TimeFrame;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 
 import java.text.ParseException;
@@ -22,7 +23,7 @@ public abstract class GenericEntryProducer<E extends Entry> implements ChartEntr
     protected abstract E getInstanceOfEntry(int index, float[] data, Object relatedData);
     protected abstract E getInstanceOfEntry(int index, float data, Object relatedData);
 
-    public List<E> getEntriesFromMessages(List<BankMessage> messages) {
+    public List<E> getEntriesFromMessages(List<BankMessage> messages, TimeFrame timeFrame) {
         List<E> entries = new ArrayList<>();
         Map<String, List<BankMessage>> messagesByDates = getMessagesGroupedByDate(messages);
         if (!messagesByDates.isEmpty()) {
@@ -30,6 +31,10 @@ public abstract class GenericEntryProducer<E extends Entry> implements ChartEntr
             dates.sort(String::compareTo);
             Date oldestDate = parseDate(dates.get(0));
             Date newestDate = parseDate(dates.get(dates.size() - 1));
+            if (timeFrame != null) {
+                oldestDate = timeFrame.getFromDate() == null? oldestDate: timeFrame.getFromDate();
+                newestDate = timeFrame.getTillDate() == null? newestDate: timeFrame.getTillDate();
+            }
             if (oldestDate != null && newestDate != null) {
                 entries = getEntriesFromDateToDate(oldestDate, newestDate, messagesByDates);
             }

@@ -4,6 +4,8 @@ import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.dto.Currency;
 import com.guzov.expensemanagercompat.dto.TimeFrame;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -11,7 +13,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class MessageUtils {
-
+    private static Double roundValue(double value) {
+        DecimalFormat df = new DecimalFormat("#.#");
+        df.setRoundingMode(RoundingMode.CEILING);
+        return Double.valueOf(df.format(value));
+    }
 
     public static List<BankMessage> getMessagesWithinTimeframe(
             List<BankMessage> messages, TimeFrame timeFrame
@@ -43,11 +49,13 @@ public class MessageUtils {
     }
 
     public static Double getSummaryOfMessages(List<BankMessage> messages) {
-        return messages.stream().mapToDouble(message -> (double) message.getValue()).sum();
+        double result = messages.stream().mapToDouble(message -> (double) message.getValue()).sum();
+        return roundValue(result);
     }
 
     public static Double getAverageCheck(List<BankMessage> messages) {
-        return messages.stream().mapToDouble(message -> (double) message.getValue()).average().orElse(0);
+        double result = messages.stream().mapToDouble(message -> (double) message.getValue()).average().orElse(0);
+        return roundValue(result);
     }
 
     public static Double getAverageByDay(List<BankMessage> messages, TimeFrame timeFrame) {
@@ -55,6 +63,12 @@ public class MessageUtils {
         int days = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
         List<BankMessage> messagesWithinTimeframe = getMessagesWithinTimeframe(messages, timeFrame);
         double sum = getSummaryOfMessages(messagesWithinTimeframe);
-        return sum / days;
+        return roundValue(sum / days);
+    }
+
+    public static Double getExpectedSum(double averageByDay, TimeFrame timeFrame) {
+        long diff = timeFrame.getTillDate().getTime() - timeFrame.getFromDate().getTime();
+        int days = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+        return roundValue(averageByDay * days);
     }
 }

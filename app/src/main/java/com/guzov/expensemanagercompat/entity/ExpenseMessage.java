@@ -41,14 +41,12 @@ public class ExpenseMessage extends BankMessage {
 
     @Override
     public String toString() {
-        return "ExpenseMessage{" +
-                "originalMessage='" + originalMessage + '\'' +
-                ", valuesSpent=" + value +
+        return  "Expense message: " +
+                "valuesSpent=" + value +
                 ", currency=" + currency +
                 ", sourceOfSpending='" + sourceOfSpending + '\'' +
                 ", date=" + date +
                 ", cardNumber='" + cardNumber + '\'' +
-                ", bankName='" + bankName + '\'' +
-                '}';
+                ", bankName='" + bankName + '\'';
     }
 }

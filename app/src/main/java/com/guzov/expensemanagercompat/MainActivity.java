@@ -16,20 +16,20 @@ import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.guzov.expensemanagercompat.chart.BarEntryProducer;
 import com.guzov.expensemanagercompat.chart.ChartEntryProducerFactory;
 import com.guzov.expensemanagercompat.dto.EntryMessageData;
 import com.guzov.expensemanagercompat.dto.MessageType;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.dto.Currency;
+import com.guzov.expensemanagercompat.entity.ExpenseMessage;
 import com.guzov.expensemanagercompat.entity.Sms;
 import com.guzov.expensemanagercompat.dto.TimeFrame;
 import com.guzov.expensemanagercompat.message.parser.BankSmsParser;
@@ -38,16 +38,11 @@ import com.guzov.expensemanagercompat.message.MessageUtils;
 import com.guzov.expensemanagercompat.message.SmsManager;
 import com.guzov.expensemanagercompat.message.factory.DefaultExpenseConfigFactory;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    protected final String[] months = new String[]{
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"
-    };
-
     private TextView textView;
     private BarChart chart;
     private TextView statistics;
@@ -60,79 +55,7 @@ public class MainActivity extends AppCompatActivity {
         statistics = (TextView) findViewById(R.id.statistic);
         textView = (TextView) findViewById(R.id.selected_value);
         chart = (BarChart) findViewById(R.id.chart);
-
-//        BarData data = new BarData(getDataSet());
-//
-//        chart.setData(data);
-
-        int range = 3;
-        int start = 1;
-        int count = 30;
-        ArrayList<BarEntry> values = new ArrayList<>();
-
-        for (int i = (int) start; i < start + count; i++) {
-            float val = (float) (Math.random() * (range + 1));
-
-            if (val > 2) {
-                values.add(new BarEntry(i, val, getResources().getDrawable(R.drawable.star)));
-            } else {
-                values.add(new BarEntry(i, val));
-            }
-        }
-        BarDataSet set1;
-        set1 = new BarDataSet(values, "The year 2017");
-        ArrayList<IBarDataSet> dataSets = new ArrayList<>();
-        dataSets.add(set1);
-
-        BarData data = new BarData(dataSets);
-        chart.setData(data);
-        chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-            @Override
-            public void onValueSelected(Entry e, Highlight h) {
-                List<BankMessage> messages = ((EntryMessageData)e.getData()).getMessages();
-                if (messages != null && !messages.isEmpty()) {
-                    int index = h.getStackIndex();
-                    textView.setText("Value = " + messages.get(index).toString());
-                }
-            }
-
-            @Override
-            public void onNothingSelected() {
-                textView.setText("");
-            }
-        });
-
-
-
-        Description description = new Description();
-        description.setText("My Chart");
-        chart.setDescription(description);
-
-        XAxis xAxis = chart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTH_SIDED);
-        xAxis.setGranularity(1f);
-        xAxis.setValueFormatter(new IAxisValueFormatter() {
-            @Override
-            public String getFormattedValue(float value, AxisBase axis) {
-                //return months[(int) value % months.length];
-                return "" + (int) value;
-            }
-        });
-
-        chart.animateXY(2000, 2000);
-        chart.setPinchZoom(false);
-        chart.invalidate();
-    }
-
-    private ArrayList getXAxisValues() {
-        ArrayList xAxis = new ArrayList();
-        xAxis.add("JAN");
-        xAxis.add("FEB");
-        xAxis.add("MAR");
-        xAxis.add("APR");
-        xAxis.add("MAY");
-        xAxis.add("JUN");
-        return xAxis;
+        showExpenses();
     }
 
     public void onMessagesButtonClick(View v) {
@@ -174,13 +97,18 @@ public class MainActivity extends AppCompatActivity {
         Double sumPrevMonth = MessageUtils.getSummaryOfMessages( MessageUtils.filterMessagesByCurrency(localMessagesPastMonth, Currency.BYN));
         Double avgCurrentMonth = MessageUtils.getAverageByDay(localMessages, TimeFrame.FROM_CURRENT_MONTH);
         Double avgPrevMonth = MessageUtils.getAverageByDay(localMessagesPastMonth, TimeFrame.FROM_PREVIOUS_MONTH_TO_CURRENT_MONTH);
+        Double expectedSumCurrentMonth = MessageUtils.getExpectedSum(avgCurrentMonth, TimeFrame.FROM_CURRENT_MONTH_FULL);
 
-        statistics.setText("Sum current month " + sumCurrentMonth + " avg " + avgCurrentMonth + " " + " sum prev " + sumPrevMonth + " avg " + avgPrevMonth);
+        statistics.setText("Sum current month " + sumCurrentMonth
+                + " sum expected " + expectedSumCurrentMonth
+                + " avg " + avgCurrentMonth
+                + " sum prev " + sumPrevMonth +
+                " avg " + avgPrevMonth);
 
-        textView.setText("message " + messages.get(0).getValue());
+        textView.setText("Messages loaded");
         List<BarEntry> entries = ChartEntryProducerFactory
                 .getInstance()
-                .getEntriesFromMessages(localMessages, BarEntry.class);
+                .getEntriesFromMessages(localMessages, TimeFrame.FROM_CURRENT_MONTH, BarEntry.class);
         BarDataSet barDataSet = new BarDataSet(entries, "expense");
         chart.clear();
         BarData barData = new BarData(barDataSet);
@@ -190,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         xAxis.setTextSize(10f);
         xAxis.setDrawAxisLine(false);
         xAxis.setDrawGridLines(false);
+        xAxis.setGranularity(1f);
         xAxis.setValueFormatter(new IAxisValueFormatter() {
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
@@ -205,8 +134,45 @@ public class MainActivity extends AppCompatActivity {
                 return result;
             }
         });
-        
+
+        YAxis yAxis = chart.getAxisLeft();
+        yAxis.setGranularity(10f);
+        yAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+
         chart.setData(barData);
+
+        chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+            @Override
+            public void onValueSelected(Entry e, Highlight h) {
+                List<BankMessage> messages = ((EntryMessageData)e.getData()).getMessages();
+                if (messages != null && !messages.isEmpty()) {
+                    int index = h.getStackIndex();
+                    String result = "";
+                    BankMessage bankMessage = messages.get(index);
+                    if (bankMessage != null) {
+                        result = bankMessage.toString();
+                    }
+                    textView.setText(result);
+                }
+            }
+
+            @Override
+            public void onNothingSelected() {
+                textView.setText("");
+            }
+        });
+
+
+
+        Description description = new Description();
+        description.setText("My Chart");
+        chart.setDescription(description);
+
+        chart.animateXY(2000,2000);
+        chart.setPinchZoom(false);
+        chart.setDoubleTapToZoomEnabled(false);
+        chart.setScaleYEnabled(false);
+        chart.setScaleXEnabled(true);
         chart.invalidate();
     }
 }

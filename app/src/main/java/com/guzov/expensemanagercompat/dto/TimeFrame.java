@@ -6,6 +6,7 @@ import java.util.Date;
 public enum TimeFrame {
     FROM_TODAY(getToday(), getToday()),
     FROM_CURRENT_MONTH(getFirstDayOfMonth(), getToday()),
+    FROM_CURRENT_MONTH_FULL(getFirstDayOfMonth(), getLastDayOfCurrentMonth()),
     FROM_PREVIOUS_MONTH_TO_CURRENT_MONTH(getFirstDayOfPreviousMonth(), getFirstDayOfMonth()),
     FROM_CURRENT_YEAR(getFirstDayOfYear(), getToday()),
     WHOLE_TIME(null, getToday());
@@ -28,10 +29,10 @@ public enum TimeFrame {
 
     private static Date getToday() {
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 24);
-        cal.clear(Calendar.MINUTE);
-        cal.clear(Calendar.SECOND);
-        cal.clear(Calendar.MILLISECOND);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 59);
         return cal.getTime();
     }
 
@@ -81,6 +82,17 @@ public enum TimeFrame {
             cal.set(Calendar.MONTH, previousMonth);
         }
         cal.set(Calendar.DAY_OF_MONTH,1);
+        return cal.getTime();
+    }
+
+    private static Date getLastDayOfCurrentMonth() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 24);
+        cal.clear(Calendar.MINUTE);
+        cal.clear(Calendar.SECOND);
+        cal.clear(Calendar.MILLISECOND);
+        int maxDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        cal.set(Calendar.DAY_OF_MONTH, maxDay);
         return cal.getTime();
     }
 }
