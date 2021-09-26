@@ -4,19 +4,15 @@ import android.graphics.Color;
 import android.text.format.DateFormat;
 
 import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.github.mikephil.charting.formatter.IValueFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.guzov.expensemanagercompat.dto.EntryMessageData;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.message.MessageUtils;
@@ -33,6 +29,11 @@ public class Configurator {
         chart.setScaleYEnabled(false);
         chart.setScaleXEnabled(true);
         chart.animateXY(2000,2000);
+        Description description = new Description();
+        description.setText("");
+        chart.setDescription(description);
+        Legend legend = chart.getLegend();
+        legend.setEnabled(false);
         chart.setData(getBarData(entries));
         configureBarChartAxes(chart, entries);
         chart.invalidate();
@@ -55,6 +56,7 @@ public class Configurator {
             }
             return result;
         });
+        barDataSet.setValueTextSize(8f);
         return new BarData(barDataSet);
     }
 
@@ -77,8 +79,16 @@ public class Configurator {
             }
             return result;
         });
-        YAxis yAxis = chart.getAxisLeft();
-        yAxis.setGranularity(10f);
-        yAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+        YAxis axisLeft = chart.getAxisLeft();
+        axisLeft.setDrawLabels(true);
+        axisLeft.setGranularity(50f);
+        axisLeft.setSpaceBottom(0);
+        axisLeft.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+
+        YAxis axisRight = chart.getAxisRight();
+        axisRight.setDrawLabels(false);
+        axisRight.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
+        axisRight.setSpaceBottom(0);
+        axisRight.setGranularity(50f);
     }
 }
