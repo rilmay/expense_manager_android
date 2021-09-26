@@ -6,10 +6,10 @@ import java.util.Map;
 
 public class BankSmsParserFactory {
     public static BankSmsParser getParser(MessageType messageType, Map<String, String> config) {
+        BankSmsParser parser = null;
         if (messageType == MessageType.EXPENSE) {
-            return ExpenseSmsParser.getInstance(config);
-        } else {
-            return null;
+            parser = ExpenseSmsParser.getInstance(config);
         }
+        return parser;
     }
 }

@@ -1,4 +1,4 @@
-package com.guzov.expensemanagercompat.chart;
+package com.guzov.expensemanagercompat.chart.entry;
 
 import com.github.mikephil.charting.data.BarEntry;
 

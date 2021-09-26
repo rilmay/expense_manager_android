@@ -1,4 +1,4 @@
-package com.guzov.expensemanagercompat.chart;
+package com.guzov.expensemanagercompat.chart.entry;
 
 import android.text.format.DateFormat;
 

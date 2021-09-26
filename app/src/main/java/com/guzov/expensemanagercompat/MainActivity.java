@@ -2,6 +2,7 @@ package com.guzov.expensemanagercompat;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.format.DateFormat;
@@ -22,31 +23,35 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.IValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.guzov.expensemanagercompat.chart.ChartEntryProducerFactory;
+import com.github.mikephil.charting.utils.ViewPortHandler;
+import com.guzov.expensemanagercompat.chart.Configurator;
+import com.guzov.expensemanagercompat.chart.entry.ChartEntryProducerFactory;
 import com.guzov.expensemanagercompat.dto.EntryMessageData;
 import com.guzov.expensemanagercompat.dto.MessageType;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.dto.Currency;
-import com.guzov.expensemanagercompat.entity.ExpenseMessage;
 import com.guzov.expensemanagercompat.entity.Sms;
 import com.guzov.expensemanagercompat.dto.TimeFrame;
-import com.guzov.expensemanagercompat.message.parser.BankSmsParser;
 import com.guzov.expensemanagercompat.message.parser.BankSmsParserFactory;
 import com.guzov.expensemanagercompat.message.MessageUtils;
 import com.guzov.expensemanagercompat.message.SmsManager;
 import com.guzov.expensemanagercompat.message.factory.DefaultExpenseConfigFactory;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private BarChart chart;
     private TextView statistics;
-    private List<BankMessage> messages;
+    private List<BankMessage> messages = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +94,8 @@ public class MainActivity extends AppCompatActivity {
     private void showExpenses(){
         List<Sms> lst = SmsManager.getAllSms(this);
         Map<String, String> expenseConfig = DefaultExpenseConfigFactory.get();
-        BankSmsParser smsParser = BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig);
-        messages = smsParser.parse(lst);
+        Optional.ofNullable(BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig))
+            .ifPresent(bankSmsParser -> messages = bankSmsParser.parse(lst));
         List<BankMessage> localMessages =  MessageUtils.filterMessagesByCurrency(MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_CURRENT_MONTH), Currency.BYN);
         List<BankMessage> localMessagesPastMonth =  MessageUtils.filterMessagesByCurrency(MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_PREVIOUS_MONTH_TO_CURRENT_MONTH), Currency.BYN);
         Double sumCurrentMonth = MessageUtils.getSummaryOfMessages( MessageUtils.filterMessagesByCurrency(localMessages, Currency.BYN));
@@ -109,39 +114,7 @@ public class MainActivity extends AppCompatActivity {
         List<BarEntry> entries = ChartEntryProducerFactory
                 .getInstance()
                 .getEntriesFromMessages(localMessages, TimeFrame.FROM_CURRENT_MONTH, BarEntry.class);
-        BarDataSet barDataSet = new BarDataSet(entries, "expense");
-        chart.clear();
-        BarData barData = new BarData(barDataSet);
-
-        XAxis xAxis = chart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setTextSize(10f);
-        xAxis.setDrawAxisLine(false);
-        xAxis.setDrawGridLines(false);
-        xAxis.setGranularity(1f);
-        xAxis.setValueFormatter(new IAxisValueFormatter() {
-            @Override
-            public String getFormattedValue(float value, AxisBase axis) {
-                int index = (int) value - 1;
-                String result = String.valueOf(index);
-                if (entries.size() > index) {
-                    BarEntry entry = entries.get(index);
-                    if (entry.getData() != null ) {
-                        Date date = ((EntryMessageData) entry.getData()).getDate();
-                        result = String.valueOf(DateFormat.format("MMM-dd", date));
-                    }
-                }
-                return result;
-            }
-        });
-
-        YAxis yAxis = chart.getAxisLeft();
-        yAxis.setGranularity(10f);
-        yAxis.setPosition(YAxis.YAxisLabelPosition.OUTSIDE_CHART);
-
-        chart.setData(barData);
-
-        chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+        Configurator.prepareBarChart(chart, entries, new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
                 List<BankMessage> messages = ((EntryMessageData)e.getData()).getMessages();
@@ -161,18 +134,5 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText("");
             }
         });
-
-
-
-        Description description = new Description();
-        description.setText("My Chart");
-        chart.setDescription(description);
-
-        chart.animateXY(2000,2000);
-        chart.setPinchZoom(false);
-        chart.setDoubleTapToZoomEnabled(false);
-        chart.setScaleYEnabled(false);
-        chart.setScaleXEnabled(true);
-        chart.invalidate();
     }
 }

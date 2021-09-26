@@ -49,7 +49,10 @@ public class MessageUtils {
     }
 
     public static Double getSummaryOfMessages(List<BankMessage> messages) {
-        double result = messages.stream().mapToDouble(message -> (double) message.getValue()).sum();
+        double result = 0;
+        if (messages != null) {
+            result = messages.stream().mapToDouble(message -> (double) message.getValue()).sum();
+        }
         return roundValue(result);
     }
 
