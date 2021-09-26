@@ -35,6 +35,7 @@ import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.dto.Currency;
 import com.guzov.expensemanagercompat.entity.Sms;
 import com.guzov.expensemanagercompat.dto.TimeFrame;
+import com.guzov.expensemanagercompat.message.parser.BankSmsParser;
 import com.guzov.expensemanagercompat.message.parser.BankSmsParserFactory;
 import com.guzov.expensemanagercompat.message.MessageUtils;
 import com.guzov.expensemanagercompat.message.SmsManager;
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private BarChart chart;
     private TextView statistics;
-    private List<BankMessage> messages = new ArrayList<>();
+    private List<BankMessage> messages;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,8 +95,10 @@ public class MainActivity extends AppCompatActivity {
     private void showExpenses(){
         List<Sms> lst = SmsManager.getAllSms(this);
         Map<String, String> expenseConfig = DefaultExpenseConfigFactory.get();
-        Optional.ofNullable(BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig))
-            .ifPresent(bankSmsParser -> messages = bankSmsParser.parse(lst));
+        BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig);
+        if (parser != null) {
+            messages = parser.parse(lst);
+        }
         List<BankMessage> localMessages =  MessageUtils.filterMessagesByCurrency(MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_CURRENT_MONTH), Currency.BYN);
         List<BankMessage> localMessagesPastMonth =  MessageUtils.filterMessagesByCurrency(MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_PREVIOUS_MONTH_TO_CURRENT_MONTH), Currency.BYN);
         Double sumCurrentMonth = MessageUtils.getSummaryOfMessages( MessageUtils.filterMessagesByCurrency(localMessages, Currency.BYN));
