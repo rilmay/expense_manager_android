@@ -1,12 +1,14 @@
 package com.guzov.expensemanagercompat.entity;
 
+import android.os.Parcelable;
+
 import com.guzov.expensemanagercompat.dto.Currency;
 import com.guzov.expensemanagercompat.dto.MessageType;
 
 import java.util.Date;
 import java.util.Objects;
 
-public abstract class BankMessage {
+public abstract class BankMessage implements Parcelable {
     protected String originalMessage;
     protected float value;
     protected Date date;

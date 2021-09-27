@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.TextView;
@@ -42,16 +43,15 @@ import com.guzov.expensemanagercompat.message.SmsManager;
 import com.guzov.expensemanagercompat.message.factory.DefaultExpenseConfigFactory;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class MainActivity extends AppCompatActivity {
     private TextView textView;
     private BarChart chart;
     private TextView statistics;
+
+    private final String MESSAGES_KEY = "MESSAGES";
     private List<BankMessage> messages;
 
     @Override
@@ -61,7 +61,14 @@ public class MainActivity extends AppCompatActivity {
         statistics = (TextView) findViewById(R.id.statistic);
         textView = (TextView) findViewById(R.id.selected_value);
         chart = (BarChart) findViewById(R.id.chart);
+        loadMessages(savedInstanceState);
         showExpenses();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(MESSAGES_KEY, (ArrayList<? extends Parcelable>) messages);
+        super.onSaveInstanceState(outState);
     }
 
     public void onMessagesButtonClick(View v) {
@@ -92,13 +99,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showExpenses(){
-        List<Sms> lst = SmsManager.getAllSms(this);
-        Map<String, String> expenseConfig = DefaultExpenseConfigFactory.get();
-        BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig);
-        if (parser != null) {
-            messages = parser.parse(lst);
+    private void loadMessages(Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+
+            List<Sms> lst = SmsManager.getAllSms(this);
+            Map<String, String> expenseConfig = DefaultExpenseConfigFactory.get();
+            BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig);
+            if (parser != null) {
+                textView.setText("parsed messages");
+                messages = parser.parse(lst);
+            } else {
+                messages = new ArrayList<>();
+            }
+        } else {
+            textView.setText("loaded old");
+            messages = savedInstanceState.getParcelableArrayList(MESSAGES_KEY);
         }
+    }
+
+    private void showExpenses(){
         List<BankMessage> localMessages =  MessageUtils.filterMessagesByCurrency(MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_CURRENT_MONTH), Currency.BYN);
         List<BankMessage> localMessagesPastMonth =  MessageUtils.filterMessagesByCurrency(MessageUtils.getMessagesWithinTimeframe(messages, TimeFrame.FROM_PREVIOUS_MONTH_TO_CURRENT_MONTH), Currency.BYN);
         Double sumCurrentMonth = MessageUtils.getSummaryOfMessages( MessageUtils.filterMessagesByCurrency(localMessages, Currency.BYN));
@@ -112,8 +131,6 @@ public class MainActivity extends AppCompatActivity {
                 + " avg " + avgCurrentMonth
                 + " sum prev " + sumPrevMonth +
                 " avg " + avgPrevMonth);
-
-        textView.setText("Messages loaded");
         List<BarEntry> entries = ChartEntryProducerFactory
                 .getInstance()
                 .getEntriesFromMessages(localMessages, TimeFrame.FROM_CURRENT_MONTH, BarEntry.class);

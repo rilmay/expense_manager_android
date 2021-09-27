@@ -43,8 +43,6 @@ public class SmsManager {
                 c.moveToNext();
             }
         }
-        c.close();
-
         return lstSms;
     }
 }
