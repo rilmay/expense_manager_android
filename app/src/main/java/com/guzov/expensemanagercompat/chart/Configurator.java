@@ -17,8 +17,12 @@ import com.guzov.expensemanagercompat.dto.EntryMessageData;
 import com.guzov.expensemanagercompat.entity.BankMessage;
 import com.guzov.expensemanagercompat.message.MessageUtils;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 
 public class Configurator {
     public static void prepareBarChart(BarChart chart, List<BarEntry> entries, OnChartValueSelectedListener listener) {
@@ -43,16 +47,26 @@ public class Configurator {
         BarDataSet barDataSet = new BarDataSet(entries, "");
         barDataSet.setColors(Color.parseColor("#F0E5CF"), Color.parseColor("#C8C6C6"), Color.parseColor("#4B6587"));
 
-        final Entry[] currentLastEntry = {null};
+        final int[] lastValueCount = {0};
         barDataSet.setValueFormatter((value, entry, dataSetIndex, viewPortHandler) -> {
             String result = "";
             List<BankMessage> messages = entry.getData() == null ? null: ((EntryMessageData) entry.getData()).getMessages();
             if (messages != null && !messages.isEmpty()) {
-                boolean isMessageFirstOnRow = messages.get(messages.size() - 1).getValue() == value && entry != currentLastEntry[0];
-                if (isMessageFirstOnRow) {
-                    result = String.valueOf(MessageUtils.getSummaryOfMessages(messages));
-                    currentLastEntry[0] = entry;
+                float lastValue = messages.get(messages.size() - 1).getValue();
+                int count = (int) messages
+                        .stream()
+                        .filter(bankMessage -> bankMessage.getValue() == lastValue)
+                        .count();
+                if (value == lastValue) {
+                    lastValueCount[0]++;
                 }
+                if (lastValueCount[0] == count) {
+                    result = String.valueOf(MessageUtils.getSummaryOfMessages(messages));
+                    lastValueCount[0] = 0;
+                }
+            } else {
+                result = "0";
+                lastValueCount[0] = 0;
             }
             return result;
         });

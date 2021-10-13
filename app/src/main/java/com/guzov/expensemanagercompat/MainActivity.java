@@ -15,19 +15,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.components.AxisBase;
-import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.formatter.IAxisValueFormatter;
-import com.github.mikephil.charting.formatter.IValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.guzov.expensemanagercompat.chart.Configurator;
 import com.guzov.expensemanagercompat.chart.entry.ChartEntryProducerFactory;
 import com.guzov.expensemanagercompat.dto.EntryMessageData;
@@ -47,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    final int REQUEST_CODE_ASK_PERMISSIONS = 123;
     private TextView textView;
     private BarChart chart;
     private TextView statistics;
@@ -71,45 +63,33 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
     }
 
-    public void onMessagesButtonClick(View v) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            final int REQUEST_CODE_ASK_PERMISSIONS = 123;
-
-            if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") == PackageManager.PERMISSION_GRANTED) {
-
-                showExpenses();
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
-            }
-        } else {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            loadMessages(null);
             showExpenses();
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode == RESULT_OK) {
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    showExpenses();
-                }
-            }
+    private void parseQueriedMessages(){
+        List<Sms> lst = SmsManager.getAllSms(this);
+        Map<String, String> expenseConfig = DefaultExpenseConfigFactory.get();
+        BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig);
+        if (parser != null) {
+            textView.setText("parsed messages");
+            messages = parser.parse(lst);
+        } else {
+            messages = new ArrayList<>();
         }
     }
 
     private void loadMessages(Bundle savedInstanceState) {
         if (savedInstanceState == null) {
-
-            List<Sms> lst = SmsManager.getAllSms(this);
-            Map<String, String> expenseConfig = DefaultExpenseConfigFactory.get();
-            BankSmsParser parser = BankSmsParserFactory.getParser(MessageType.EXPENSE, expenseConfig);
-            if (parser != null) {
-                textView.setText("parsed messages");
-                messages = parser.parse(lst);
+            if (ContextCompat.checkSelfPermission(getBaseContext(), "android.permission.READ_SMS") == PackageManager.PERMISSION_GRANTED) {
+                parseQueriedMessages();
             } else {
-                messages = new ArrayList<>();
+                ActivityCompat.requestPermissions(this, new String[]{"android.permission.READ_SMS"}, REQUEST_CODE_ASK_PERMISSIONS);
             }
         } else {
             textView.setText("loaded old");
